@@ -13,27 +13,3 @@
 </body>
 
 </html>
-
-<!-- 
-Text format of WebAssembly code
-(corresponding to the public/sum.wasm file)
-
-(memory 1): create 1 page of memory (~64KB) in webassambly
-(export "mem" (memory 0)): export the first memory in webassambly, so that js can use that memory (~variable)
-(data (i32.const 0) "Hi"): init the value ("Hi") for the first memory ($mem)
-
-(module
-    (import "console" "log" (func $log))
-    (import "console" "error" (func $error))
-    (memory (import "js" "mem") 1)
-    (data (i32.const 0) "Hi")
-    (func $sum (param $a i32) (param $b i32) (result i32)
-        call $log
-        call $error
-        local.get $a
-        local.get $b
-        i32.add
-    )
-    (export "sum" (func $sum))
-)
- -->
