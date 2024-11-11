@@ -13,7 +13,7 @@ wasm-pack build --target web
 // Move to the UI:
 cd www
 
-// Update node modules:
+// Update node modules (for the first time add snake_game pkg)
 npm install
 
 // Run website
