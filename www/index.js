@@ -32,5 +32,24 @@ init().then( _ => {
         context.stroke();
     }
 
+    function drawSnake() {
+        const snake_head_idx = world.snake_head_idx();
+        const row = Math.floor(snake_head_idx / worldWidth);
+        const column = snake_head_idx % worldWidth; 
+
+        console.log(`Snake position: (${row}, ${column})`);
+
+        // at the begin, snake length = 1 --> fill that cell
+        context.beginPath();
+        context.fillRect(
+            column * CELL_SIZE,
+            row * CELL_SIZE,
+            CELL_SIZE,
+            CELL_SIZE
+        );
+        context.stroke();
+    }
+
     drawWorld();
+    drawSnake();
 })
