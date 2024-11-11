@@ -22,15 +22,23 @@ impl Snake {
 // Although world grid is a 2d matrix, we consider it like 1d array[0..width*width]
 #[wasm_bindgen]
 pub struct World {
+    // number rows/columns in grid
     width: usize,
+
+    // number cells in grid
+    size: usize,
+
     snake: Snake,
 }
 
 #[wasm_bindgen]
 impl World {
     pub fn new() -> Self {
+        let width = 8;
+
         World {
-            width: 8,
+            width,
+            size: width * width,
             snake: Snake::new(10),
         }
     }
@@ -41,6 +49,11 @@ impl World {
 
     pub fn snake_head_idx(&self) -> usize {
         self.snake.body[0].0
+    }
+
+    pub fn update(&mut self) {
+        let snake_head_idx = self.snake_head_idx();
+        self.snake.body[0].0 = (snake_head_idx + 1) % self.size;
     }
 }
 

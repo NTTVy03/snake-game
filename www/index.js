@@ -1,6 +1,6 @@
-import init, {World} from "snake_game";
+import init, { World } from "snake_game";
 
-init().then( _ => {
+init().then(_ => {
     const CELL_SIZE = 10;
 
     const world = World.new();
@@ -35,7 +35,7 @@ init().then( _ => {
     function drawSnake() {
         const snake_head_idx = world.snake_head_idx();
         const row = Math.floor(snake_head_idx / worldWidth);
-        const column = snake_head_idx % worldWidth; 
+        const column = snake_head_idx % worldWidth;
 
         console.log(`Snake position: (${row}, ${column})`);
 
@@ -50,6 +50,27 @@ init().then( _ => {
         context.stroke();
     }
 
-    drawWorld();
-    drawSnake();
+    function paint() {
+        drawWorld();
+        drawSnake();
+    }
+
+    function update() {
+        // update the world grid after an interval time
+        setTimeout(() => {
+            // clear the current canvas
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // draw new world grid and snake
+            world.update();
+            paint();
+
+            // this function optimized the rendering
+            // we do not need to specify interval time between each re-rendering time
+            requestAnimationFrame(update);
+        }, 100)
+    }
+
+    paint();
+    update();
 })
