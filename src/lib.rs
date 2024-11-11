@@ -1,22 +1,26 @@
 use wasm_bindgen::prelude::*;
 use wee_alloc::WeeAlloc;
 
-// we_alloc makes the wasm file smaller
-
-// Use `wee_alloc` as the global allocator.
 #[global_allocator]
 static ALLOC: WeeAlloc = WeeAlloc::INIT;
 
+// World is the square grid that our snake will move inside it
 #[wasm_bindgen]
-pub fn greet(name: &str) {
-    // call js function in rust code
-    alert(name);
+pub struct World {
+    width: usize
 }
 
-// import functions from js to use in rust
 #[wasm_bindgen]
-extern {
-    pub fn alert(s: &str);
+impl World {
+    pub fn new() -> Self {
+        World {
+            width: 8
+        }
+    }
+
+    pub fn width(&self) -> usize {
+        self.width
+    }
 }
 
 // wasm-pack build --target web
