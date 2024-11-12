@@ -2,8 +2,10 @@ import init, { World } from "snake_game";
 
 init().then(_ => {
     const CELL_SIZE = 10;
+    const WORLD_WIDTH = 8;
+    const snackSpawnIdx = Date.now() % (WORLD_WIDTH * WORLD_WIDTH);
 
-    const world = World.new();
+    const world = World.new(WORLD_WIDTH, snackSpawnIdx);
     const worldWidth = world.width();
 
     // canvas is an UI component that display the world grid
@@ -36,8 +38,9 @@ init().then(_ => {
         const snake_head_idx = world.snake_head_idx();
         const row = Math.floor(snake_head_idx / worldWidth);
         const column = snake_head_idx % worldWidth;
+        const direction = world.snake_direction();
 
-        console.log(`Snake position: (${row}, ${column})`);
+        console.log(`[${direction} - ${snake_head_idx}] Snake position: (${row}, ${column})`);
 
         // at the begin, snake length = 1 --> fill that cell
         context.beginPath();
@@ -56,6 +59,10 @@ init().then(_ => {
     }
 
     function update() {
+        // fps: frames per second
+        // increase fps for faster snake movement
+        const fps = 5;
+
         // update the world grid after an interval time
         setTimeout(() => {
             // clear the current canvas
@@ -68,7 +75,7 @@ init().then(_ => {
             // this function optimized the rendering
             // we do not need to specify interval time between each re-rendering time
             requestAnimationFrame(update);
-        }, 100)
+        }, 1000 / fps)
     }
 
     paint();
