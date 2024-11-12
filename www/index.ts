@@ -7,7 +7,7 @@ init().then(_ => {
     const worldWidth = world.width();
 
     // canvas is an UI component that display the world grid
-    const canvas = document.getElementById("snake-canvas");
+    const canvas = <HTMLCanvasElement> document.getElementById("snake-canvas");
     // context of canvas help us interact with the canvas
     const context = canvas.getContext("2d");
 

@@ -16,5 +16,18 @@ module.exports = {
                 { from: "./index.html", to: "./" }
             ]
         })
-    ]
+    ],
+    // allow this project to use typescript
+    module: {
+        rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
+        ],
+    },
+    resolve: {
+        extensions: ['.tsx', '.ts', '.js'],
+    },
 }
