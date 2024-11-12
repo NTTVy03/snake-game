@@ -1,9 +1,11 @@
 import init, { World, Direction } from "snake_game";
+import { random } from "./utils/rand";
 
 init().then(wasm => {
     const CELL_SIZE = 10;
     const WORLD_WIDTH = 8;
-    const snakeSpawnIdx = Date.now() % (WORLD_WIDTH * WORLD_WIDTH);
+    const WORLD_SIZE = WORLD_WIDTH * WORLD_WIDTH;
+    const snakeSpawnIdx = random(WORLD_SIZE);
     const SNAKE_LENGTH = 3;
 
     const world = World.new(WORLD_WIDTH, snakeSpawnIdx, SNAKE_LENGTH);
@@ -77,9 +79,35 @@ init().then(wasm => {
         })
     }
 
+    function drawReward() {
+        // get list of snake cells
+        const rewardCells = new Uint32Array (
+            wasm.memory.buffer,
+            world.reward_cell(),
+            1
+        )
+        
+        rewardCells.forEach((cellIdx, i) => {
+            context.fillStyle = "#FF0000";
+
+            const column = cellIdx % worldWidth;
+            const row = Math.trunc(cellIdx / worldWidth);
+
+            context.beginPath();
+            context.fillRect(
+                column * CELL_SIZE,
+                row * CELL_SIZE,
+                CELL_SIZE,
+                CELL_SIZE
+            );
+            context.stroke();
+        })
+    }
+
     function paint() {
         drawWorld();
         drawSnake();
+        drawReward();
     }
 
     function update() {
