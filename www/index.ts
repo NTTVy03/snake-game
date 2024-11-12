@@ -1,4 +1,4 @@
-import init, { World } from "snake_game";
+import init, { World, Direction } from "snake_game";
 
 init().then(_ => {
     const CELL_SIZE = 10;
@@ -9,12 +9,28 @@ init().then(_ => {
     const worldWidth = world.width();
 
     // canvas is an UI component that display the world grid
-    const canvas = <HTMLCanvasElement> document.getElementById("snake-canvas");
+    const canvas = <HTMLCanvasElement>document.getElementById("snake-canvas");
     // context of canvas help us interact with the canvas
     const context = canvas.getContext("2d");
 
     canvas.height = worldWidth * CELL_SIZE;
     canvas.width = worldWidth * CELL_SIZE;
+
+    document.addEventListener("keydown", (e) => {
+        switch (e.code) {
+            case "ArrowLeft":
+                world.change_snake_direction(Direction.Left);
+                break;
+            case "ArrowRight":
+                world.change_snake_direction(Direction.Right);
+                break;
+            case "ArrowDown":
+                world.change_snake_direction(Direction.Down);
+                break;
+            case "ArrowUp":
+                world.change_snake_direction(Direction.Up);
+        }
+    })
 
     function drawWorld() {
         context.beginPath();
@@ -38,10 +54,7 @@ init().then(_ => {
         const snake_head_idx = world.snake_head_idx();
         const row = Math.floor(snake_head_idx / worldWidth);
         const column = snake_head_idx % worldWidth;
-        const direction = world.snake_direction();
-
-        console.log(`[${direction} - ${snake_head_idx}] Snake position: (${row}, ${column})`);
-
+        
         // at the begin, snake length = 1 --> fill that cell
         context.beginPath();
         context.fillRect(
@@ -67,7 +80,7 @@ init().then(_ => {
         setTimeout(() => {
             // clear the current canvas
             context.clearRect(0, 0, canvas.width, canvas.height);
-            
+
             // draw new world grid and snake
             world.update();
             paint();

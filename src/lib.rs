@@ -4,8 +4,9 @@ use wee_alloc::WeeAlloc;
 #[global_allocator]
 static ALLOC: WeeAlloc = WeeAlloc::INIT;
 
+#[wasm_bindgen]
 #[derive(PartialEq)]
-enum Direction {
+pub enum Direction {
     Left,
     Right,
     Down,
@@ -63,13 +64,8 @@ impl World {
         self.snake.body[0].0 = idx;
     }
 
-    pub fn snake_direction(&self) -> String {
-        match self.snake.direction  {
-            Direction::Left => "left".to_string(),
-            Direction::Right => "right".to_string(),
-            Direction::Down => "down".to_string(),
-            Direction::Up => "up".to_string(),
-        }
+    pub fn change_snake_direction(&mut self, direction: Direction) {
+        self.snake.direction = direction;
     }
 
     pub fn update(&mut self) {
