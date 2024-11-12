@@ -5,8 +5,16 @@ use wee_alloc::WeeAlloc;
 static ALLOC: WeeAlloc = WeeAlloc::INIT;
 
 #[wasm_bindgen(module = "/www/utils/rand.js")]
-extern "C" {
+extern {
     fn random(max: usize) -> usize;
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub enum GameStatus {
+    Win,
+    Lost,
+    Playing
 }
 
 #[wasm_bindgen]
@@ -57,6 +65,7 @@ pub struct World {
 
     snake: Snake,
     reward_cell: RewardCell,
+    game_status: GameStatus,
 }
 
 #[wasm_bindgen]
@@ -75,17 +84,23 @@ impl World {
         let size = width * width;
         let snake = Snake::new(snake_idx, snake_len);
         let reward_cell = Self::gen_reward_cell(size, &snake);
+        let game_status = GameStatus::Playing;
 
         World {
             width,
             size,
             snake,
             reward_cell,
+            game_status
         }
     }
 
     pub fn width(&self) -> usize {
         self.width
+    }
+
+    pub fn game_status(&self) -> GameStatus {
+        self.game_status
     }
 
     pub fn reward_cell(&self) -> *const RewardCell {
@@ -147,7 +162,17 @@ impl World {
 
         if self.reward_cell.0 == self.snake_head_idx() {
             self.snake.body.push(SnakeCell(self.snake.body[1].0));
-            self.reward_cell = Self::gen_reward_cell(self.size, &self.snake);
+
+            if self.snake_length() == self.size {
+                self.game_status = GameStatus::Win;
+                self.reward_cell = RewardCell(10000);
+            } else {
+                self.reward_cell = Self::gen_reward_cell(self.size, &self.snake);
+            }
+        }
+
+        if self.snake.body[1..self.snake_length()].contains(&SnakeCell(self.snake_head_idx())) {
+            self.game_status = GameStatus::Lost;
         }
     }
 }

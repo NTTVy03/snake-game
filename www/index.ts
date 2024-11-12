@@ -1,4 +1,4 @@
-import init, { World, Direction } from "snake_game";
+import init, { World, Direction, GameStatus } from "snake_game";
 import { random } from "./utils/rand";
 
 init().then(wasm => {
@@ -55,38 +55,40 @@ init().then(wasm => {
 
     function drawSnake() {
         // get list of snake cells
-        const snakeCells = new Uint32Array (
+        const snakeCells = new Uint32Array(
             wasm.memory.buffer,
             world.snake_cells(),
             world.snake_length()
         )
-        
-        snakeCells.forEach((cellIdx, i) => {
-            // set other color for snake head
-            context.fillStyle = (i == 0 ? "#7878db" : "#000000");
 
-            const column = cellIdx % worldWidth;
-            const row = Math.trunc(cellIdx / worldWidth);
+        snakeCells.slice()
+            .reverse()
+            .forEach((cellIdx, i) => {
+                // set other color for snake head
+                context.fillStyle = (i === snakeCells.length - 1 ? "#7878db" : "#000000");
 
-            context.beginPath();
-            context.fillRect(
-                column * CELL_SIZE,
-                row * CELL_SIZE,
-                CELL_SIZE,
-                CELL_SIZE
-            );
-            context.stroke();
-        })
+                const column = cellIdx % worldWidth;
+                const row = Math.trunc(cellIdx / worldWidth);
+
+                context.beginPath();
+                context.fillRect(
+                    column * CELL_SIZE,
+                    row * CELL_SIZE,
+                    CELL_SIZE,
+                    CELL_SIZE
+                );
+                context.stroke();
+            })
     }
 
     function drawReward() {
         // get list of snake cells
-        const rewardCells = new Uint32Array (
+        const rewardCells = new Uint32Array(
             wasm.memory.buffer,
             world.reward_cell(),
             1
         )
-        
+
         rewardCells.forEach((cellIdx, i) => {
             context.fillStyle = "#FF0000";
 
@@ -111,6 +113,12 @@ init().then(wasm => {
     }
 
     function update() {
+        const status = world.game_status();
+
+        if (status == GameStatus.Win || status == GameStatus.Lost) {
+            return;
+        }
+
         // fps: frames per second
         // increase fps for faster snake movement
         const fps = 5;
