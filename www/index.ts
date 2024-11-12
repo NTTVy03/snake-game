@@ -1,11 +1,12 @@
 import init, { World, Direction } from "snake_game";
 
-init().then(_ => {
+init().then(wasm => {
     const CELL_SIZE = 10;
     const WORLD_WIDTH = 8;
-    const snackSpawnIdx = Date.now() % (WORLD_WIDTH * WORLD_WIDTH);
+    const snakeSpawnIdx = Date.now() % (WORLD_WIDTH * WORLD_WIDTH);
+    const SNAKE_LENGTH = 3;
 
-    const world = World.new(WORLD_WIDTH, snackSpawnIdx);
+    const world = World.new(WORLD_WIDTH, snakeSpawnIdx, SNAKE_LENGTH);
     const worldWidth = world.width();
 
     // canvas is an UI component that display the world grid
@@ -51,19 +52,29 @@ init().then(_ => {
     }
 
     function drawSnake() {
-        const snake_head_idx = world.snake_head_idx();
-        const row = Math.floor(snake_head_idx / worldWidth);
-        const column = snake_head_idx % worldWidth;
+        // get list of snake cells
+        const snakeCells = new Uint32Array (
+            wasm.memory.buffer,
+            world.snake_cells(),
+            world.snake_length()
+        )
         
-        // at the begin, snake length = 1 --> fill that cell
-        context.beginPath();
-        context.fillRect(
-            column * CELL_SIZE,
-            row * CELL_SIZE,
-            CELL_SIZE,
-            CELL_SIZE
-        );
-        context.stroke();
+        snakeCells.forEach((cellIdx, i) => {
+            // set other color for snake head
+            context.fillStyle = (i == 0 ? "#7878db" : "#000000");
+
+            const column = cellIdx % worldWidth;
+            const row = Math.trunc(cellIdx / worldWidth);
+
+            context.beginPath();
+            context.fillRect(
+                column * CELL_SIZE,
+                row * CELL_SIZE,
+                CELL_SIZE,
+                CELL_SIZE
+            );
+            context.stroke();
+        })
     }
 
     function paint() {
@@ -82,7 +93,7 @@ init().then(_ => {
             context.clearRect(0, 0, canvas.width, canvas.height);
 
             // draw new world grid and snake
-            world.update();
+            world.step();
             paint();
 
             // this function optimized the rendering

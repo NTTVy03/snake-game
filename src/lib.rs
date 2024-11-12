@@ -13,7 +13,9 @@ pub enum Direction {
     Up,
 }
 
-struct SnakeCell(usize);
+#[wasm_bindgen]
+#[derive(Clone, PartialEq)]
+pub struct SnakeCell(usize);
 
 struct Snake {
     body: Vec<SnakeCell>,
@@ -21,9 +23,15 @@ struct Snake {
 }
 
 impl Snake {
-    pub fn new(spawn_index: usize) -> Self {
+    pub fn new(spawn_index: usize, len: usize) -> Self {
+        let mut body = Vec::new();
+
+        for i in 0..len {
+            body.push(SnakeCell(spawn_index + i));
+        }
+
         Snake {
-            body: vec![SnakeCell(spawn_index)],
+            body,
             direction: Direction::Right,
         }
     }
@@ -44,11 +52,11 @@ pub struct World {
 
 #[wasm_bindgen]
 impl World {
-    pub fn new(width: usize, snake_idx: usize) -> Self {
+    pub fn new(width: usize, snake_idx: usize, snake_len: usize) -> Self {
         World {
             width,
             size: width * width,
-            snake: Snake::new(snake_idx),
+            snake: Snake::new(snake_idx, snake_len),
         }
     }
 
@@ -56,54 +64,56 @@ impl World {
         self.width
     }
 
+    pub fn snake_length(&self) -> usize {
+        self.snake.body.len()
+    }
+
+    // can not return a reference to JS because of the borrowing rules
+    // pub fn snake_cells(&self) -> &Vec<SnakeCell> {
+    //     &self.snake.body
+    // }
+
+    // *const is raw pointer
+    // borrowing rules does not apply to it
+    pub fn snake_cells(&self) -> *const SnakeCell {
+        self.snake.body.as_ptr()
+    }
+
     pub fn snake_head_idx(&self) -> usize {
         self.snake.body[0].0
     }
 
-    fn set_snake_head(&mut self, idx: usize) {
-        self.snake.body[0].0 = idx;
-    }
-
     pub fn change_snake_direction(&mut self, direction: Direction) {
+        let next_cell = self.gen_next_snake_cell(&direction);
+
+        if next_cell == self.snake.body[1] {
+            return;
+        }
+
         self.snake.direction = direction;
     }
 
-    pub fn update(&mut self) {
+    fn gen_next_snake_cell(&self, direction: &Direction) -> SnakeCell {
         let snake_idx = self.snake_head_idx();
-        
-        let (mut row, mut column) = self.idx_to_cell(snake_idx);
+        let row = snake_idx / self.width;
 
-        match self.snake.direction {
-            Direction::Left => {
-                column = (column - 1 + self.width) % self.width;
-            },
-            Direction::Right => {
-                column = (column + 1) % self.width;
-            },
-            Direction::Down => {
-                row = (row + 1) % self.width;
-            },
-            Direction::Up => {
-                row = (row - 1  + self.width) % self.width;
-            },
+        return match direction {
+            Direction::Left => SnakeCell((row * self.width) + (snake_idx - 1) % self.width),
+            Direction::Right => SnakeCell((row * self.width) + (snake_idx + 1) % self.width),
+            Direction::Down => SnakeCell((snake_idx + self.width) % self.size),
+            Direction::Up => SnakeCell((snake_idx - self.width) % self.size),
+        };
+    }
+
+    pub fn step(&mut self) {
+        let snake_cells = &mut self.snake.body;
+
+        for id in (1..snake_cells.len()).rev() {
+            let previous_cell = &snake_cells[id - 1];
+            snake_cells[id] = previous_cell.clone();
         }
 
-        let new_idx = self.cell_to_idx(row, column);
-        self.set_snake_head(new_idx);
-    }
-
-    fn idx_to_cell(&self, idx: usize) -> (usize, usize) {
-        let row = idx / self.width;
-        let column = idx % self.width;
-
-        (row, column)
-    }
-
-    fn cell_to_idx(&self, row: usize, column: usize) -> usize {
-        let row = row % self.width;
-        let column = column % self.width;
-
-        row * self.width + column
+        self.snake.body[0] = self.gen_next_snake_cell(&self.snake.direction);
     }
 }
 
