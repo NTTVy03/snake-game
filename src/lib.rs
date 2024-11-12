@@ -5,7 +5,7 @@ use wee_alloc::WeeAlloc;
 static ALLOC: WeeAlloc = WeeAlloc::INIT;
 
 #[wasm_bindgen(module = "/www/utils/rand.js")]
-extern {
+extern "C" {
     fn random(max: usize) -> usize;
 }
 
@@ -91,7 +91,7 @@ impl World {
     pub fn reward_cell(&self) -> *const RewardCell {
         &self.reward_cell
     }
-                                                                                           
+
     pub fn snake_length(&self) -> usize {
         self.snake.body.len()
     }
@@ -135,13 +135,20 @@ impl World {
 
     pub fn step(&mut self) {
         let snake_cells = &mut self.snake.body;
+        let snake_len = snake_cells.len();
 
-        for id in (1..snake_cells.len()).rev() {
+        for id in (1..snake_len).rev() {
             let previous_cell = &snake_cells[id - 1];
             snake_cells[id] = previous_cell.clone();
         }
 
-        self.snake.body[0] = self.gen_next_snake_cell(&self.snake.direction);
+        let direction = &self.snake.direction;
+        self.snake.body[0] = self.gen_next_snake_cell(direction);
+
+        if self.reward_cell.0 == self.snake_head_idx() {
+            self.snake.body.push(SnakeCell(self.snake.body[1].0));
+            self.reward_cell = Self::gen_reward_cell(self.size, &self.snake);
+        }
     }
 }
 
