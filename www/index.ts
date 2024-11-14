@@ -115,7 +115,11 @@ init().then(wasm => {
     function update() {
         const status = world.game_status();
 
-        if (status == GameStatus.Win || status == GameStatus.Lost) {
+        if (status == GameStatus.Win) {
+            alert("Congratulations!!!")
+            return;
+        } else if (status == GameStatus.Lost) {
+            alert("Oh nooo!!!")
             return;
         }
 
